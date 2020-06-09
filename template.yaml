@@ -35,6 +35,17 @@ Parameters:
       Default: 90
 
 Resources:
+  GlueManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: GlueManagedPolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "glue:*"
+            Resource: "*"
+
   ExecuteFixityStepsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -54,6 +65,8 @@ Resources:
             BucketName: !Ref FixityOutputBucket
         - StepFunctionsExecutionPolicy:
             StateMachineName: !Ref StateMachineName
+        - !Ref GlueManagedPolicy
+
       Environment:
           Variables:
             Region: !Ref Region

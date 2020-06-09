@@ -32,8 +32,20 @@ Above command will package the application and upload it to the S3 bucket you sp
 
 Run the following in your shell to deploy the application to AWS:
 ```bash
-sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCKETNAME --parameter-overrides '' --capabilities CAPABILITY_IAM --region us-east-1
+sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCKETNAME --parameter-overrides 'DatabaseName=databasename TableName=tablename ResultBucket=bucketname FixityOutputBucket=bucketname StateMachineName=statemachinename StateMachineArn=statemachinearn DayPeriod=90 Region=us-east-1' --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1
 ```
+
+### Environment variables
+| Key | Value |
+|----------|:-------------:|
+| DatabaseName | Athena Database Name |
+| TableName | Athena Table Name |
+| ResultBucket | S3 Bucket that stores Athena query result |
+| FixityOutputBucket | S3 Bucket that stores Fixity output result |
+| StateMachineName | State Machine Name |
+| StateMachineArn | State Machine Arn |
+| DayPeriod | 90 |
+| REGION | us-east-1 |
 
 * **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
 * **AWS Region**: The AWS region you want to deploy your app to.
