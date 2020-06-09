@@ -24,6 +24,15 @@ Parameters:
     WorkGroupName:
       Type: String
       Default: "primary"
+    StateMachineName:
+      Type: String
+      Default: "StateMachineName"
+    StateMachineArn:
+      Type: String
+      Default: "StateMachineArn"
+    DayPeriod:
+      Type: Number
+      Default: 90
 
 Resources:
   ExecuteFixityStepsFunction:
@@ -43,6 +52,8 @@ Resources:
             BucketName: !Ref ResultBucket
         - S3ReadPolicy:
             BucketName: !Ref FixityOutputBucket
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !Ref StateMachineName
       Environment:
           Variables:
             Region: !Ref Region
@@ -50,6 +61,8 @@ Resources:
             TableName: !Ref TableName
             FixityOutputBucket: !Ref FixityOutputBucket
             ResultBucket: !Ref ResultBucket
+            StateMachineArn: !Ref StateMachineArn
+            DayPeriod: !Ref DayPeriod
 
 Outputs:
   ExecuteFixityStepsFunction:

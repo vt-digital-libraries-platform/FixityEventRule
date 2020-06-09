@@ -2,6 +2,15 @@ import boto3
 import json
 import os
 import time
+import uuid
+
+from datetime import datetime, timedelta
+
+
+def getDateFromDay(days):
+
+    from_date = datetime.now() - timedelta(days=days)
+    return from_date.strftime('%Y-%m-%d')
 
 
 def execute_query(query, database, s3_output):
@@ -67,6 +76,20 @@ def get_value_from_list(inputData):
     return inputData["VarCharValue"]
 
 
+def execute_step_functions(stepMachineArn, inputJson):
+
+    client = boto3.client('stepfunctions')
+    taskname = "task-" + str(uuid.uuid4())
+
+    response = client.start_execution(
+        stateMachineArn=stepMachineArn,
+        name=taskname,
+        input=inputJson
+    )
+
+    return response
+
+
 def lambda_handler(event, context):
 
     # Environment variables
@@ -74,21 +97,23 @@ def lambda_handler(event, context):
     table_name = os.getenv('TableName')
     fixity_output_bucket_name = os.getenv('FixityOutputBucket')
     query_result_bucket_name = os.getenv('ResultBucket')
+    state_machine_arn = os.getenv('StateMachineArn')
+    dayPeriod = int(os.getenv('DayPeriod'))
 
     s3_output = f's3://{query_result_bucket_name}/results/'
+    startDate = getDateFromDay(dayPeriod)
+    endDate = getDateFromDay(0)
 
-    # update to calculate 90 days
     query = """
-          SELECT bucket, key
-          FROM output
-          WHERE timestamp
-              BETWEEN CAST('2020-05-01' AS DATE)
-                  AND CAST('2020-06-01' AS DATE)
-                  AND key NOT IN
-              (SELECT key
-              FROM output
-              WHERE timestamp >= CAST('2020-06-01' AS DATE) ) LIMIT 1
-        """
+      SELECT bucket, key
+      FROM output
+      WHERE key NOT IN
+        (SELECT key
+        FROM output
+        WHERE timestamp
+          BETWEEN CAST('%s' AS DATE)
+            AND CAST('%s' AS DATE) ) LIMIT 1
+    """ % (startDate, endDate)
 
     queryResponse = execute_query(
         query=query,
@@ -101,13 +126,12 @@ def lambda_handler(event, context):
         print("Query Athena failed")
     else:
         for x in range(1, len(results["Rows"])):
-            # execute steps functions
-            print(
-                create_steps_task_json(
-                    results["Rows"][x]["Data"],
-                    outputBucket))
-            # update lambda timout limit
-            # sleep 2
+            task_json = create_steps_task_json(
+                results["Rows"][x]["Data"],
+                outputBucket)
+            print(task_json)
+            print(execute_step_functions(state_machine_arn, task_json))
+            time.sleep(2)
 
     return {
         "statusCode": 200,
