@@ -5,9 +5,25 @@ Description: >
 
   SAM Template for Execute Fixity Steps Function
 
-Globals:
-  Function:
-    Timeout: 3
+Parameters:
+    Region:
+      Type: String
+      Default: "us-east-1"
+    DatabaseName:
+      Type: String
+      Default: "DatabaseName"
+    TableName:
+      Type: String
+      Default: "TableName"
+    FixityOutputBucket:
+      Type: String
+      Default: "FixityOutputBucket"
+    ResultBucket:
+      Type: String
+      Default: "ResultBucket"
+    WorkGroupName:
+      Type: String
+      Default: "primary"
 
 Resources:
   ExecuteFixityStepsFunction:
@@ -16,6 +32,24 @@ Resources:
       CodeUri: fixitycheck/
       Handler: lambda_function.lambda_handler
       Runtime: python3.8
+      MemorySize: 2048
+      Timeout: 120
+      Policies:
+        - AthenaQueryPolicy:
+            WorkGroupName: !Ref WorkGroupName
+        - S3WritePolicy:
+            BucketName: !Ref ResultBucket
+        - S3ReadPolicy:
+            BucketName: !Ref ResultBucket
+        - S3ReadPolicy:
+            BucketName: !Ref FixityOutputBucket
+      Environment:
+          Variables:
+            Region: !Ref Region
+            DatabaseName: !Ref DatabaseName
+            TableName: !Ref TableName
+            FixityOutputBucket: !Ref FixityOutputBucket
+            ResultBucket: !Ref ResultBucket
 
 Outputs:
   ExecuteFixityStepsFunction:

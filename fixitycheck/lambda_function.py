@@ -1,5 +1,6 @@
 import boto3
 import json
+import os
 import time
 
 
@@ -69,10 +70,16 @@ def get_value_from_list(inputData):
 
 def lambda_handler(event, context):
 
-    database_name = "default"
-    table_name = "output"
-    bucket_name = "fixity-query-result"
-    s3_output = f's3://{bucket_name}/results/'
+    # Environment variables
+    database_name = os.getenv('DatabaseName')
+    table_name = os.getenv('TableName')
+    fixity_output_bucket_name = os.getenv('FixityOutputBucket')
+    query_result_bucket_name = os.getenv('ResultBucket')
+
+    # database_name = "default"
+    # table_name = "output"
+    # query_result_bucket_name = "fixity-query-result"
+    s3_output = f's3://{query_result_bucket_name}/results/'
 
     # update to calculate 90 days
     query = """
@@ -97,7 +104,7 @@ def lambda_handler(event, context):
         database=database_name,
         s3_output=s3_output)
     results = get_query_result(queryResponse["QueryExecutionId"])
-    outputBucket = "fixity-test-output"
+    outputBucket = fixity_output_bucket_name
 
     for x in range(1, len(results["Rows"])):
         # execute steps functions
@@ -108,7 +115,6 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
+            "message": "Task executed.",
         }),
     }

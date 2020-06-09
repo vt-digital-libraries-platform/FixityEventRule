@@ -4,10 +4,10 @@ This project contains source code and supporting files for a serverless applicat
 
 - fixitycheck - Code for this application's Lambda function.
 - events - Invocation events that you can use to invoke the function.
-- tests - Unit tests for this application code. 
+- tests - Unit tests for this application code.
 - template.yaml - A template that defines this application's AWS resources.
 
-The application uses several AWS resources, including Lambda functions, Athema, CloudWatch, and Steps Function. These resources are defined in the `template.yaml` file in this project. 
+The application uses several AWS resources, including Lambda functions, Athema, CloudWatch, and Step Functions. These resources are defined in the `template.yaml` file in this project.
 
 ## Deploy the FixityEventRule application
 

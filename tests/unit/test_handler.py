@@ -21,4 +21,4 @@ def test_lambda_handler(test_event):
 
     assert ret["statusCode"] == 200
     assert "message" in ret["body"]
-    assert data["message"] == "hello world"
+    assert data["message"] == "Task executed."
