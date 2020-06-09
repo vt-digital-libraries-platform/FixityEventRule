@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  FixityEventRule
+
+  SAM Template for Execute Fixity Steps Function
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  ExecuteFixityStepsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: fixitycheck/
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.8
+
+Outputs:
+  ExecuteFixityStepsFunction:
+    Description: "Execute Fixity Steps Function ARN"
+    Value: !GetAtt ExecuteFixityStepsFunction.Arn
+  ExecuteFixityStepsFunctionIamRole:
+    Description: "Implicit IAM Role created for Execute Fixity Steps Function"
+    Value: !GetAtt ExecuteFixityStepsFunctionRole.Arn
