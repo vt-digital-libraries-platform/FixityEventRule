@@ -6,7 +6,7 @@ import time
 
 def execute_query(query, database, s3_output):
     """Execute the Athena query"""
-    print("Executing query: %s" % (query))
+
     client = boto3.client('athena')
     response = client.start_query_execution(
         QueryString=query,
@@ -67,7 +67,6 @@ def get_value_from_list(inputData):
     return inputData["VarCharValue"]
 
 
-
 def lambda_handler(event, context):
 
     # Environment variables
@@ -76,9 +75,6 @@ def lambda_handler(event, context):
     fixity_output_bucket_name = os.getenv('FixityOutputBucket')
     query_result_bucket_name = os.getenv('ResultBucket')
 
-    # database_name = "default"
-    # table_name = "output"
-    # query_result_bucket_name = "fixity-query-result"
     s3_output = f's3://{query_result_bucket_name}/results/'
 
     # update to calculate 90 days
@@ -91,13 +87,8 @@ def lambda_handler(event, context):
                   AND key NOT IN
               (SELECT key
               FROM output
-              WHERE timestamp >= CAST('2020-06-01' AS DATE) )
+              WHERE timestamp >= CAST('2020-06-01' AS DATE) ) LIMIT 1
         """
-
-    # query = """ SELECT bucket, key
-    #         FROM output
-    #         WHERE timestamp >= CAST('2020-06-01' AS DATE) limit 3
-    #         """
 
     queryResponse = execute_query(
         query=query,
@@ -106,11 +97,17 @@ def lambda_handler(event, context):
     results = get_query_result(queryResponse["QueryExecutionId"])
     outputBucket = fixity_output_bucket_name
 
-    for x in range(1, len(results["Rows"])):
-        # execute steps functions
-        print(create_steps_task_json(results["Rows"][x]["Data"], outputBucket))
-        # update lambda timout limit
-        # sleep 2
+    if len(results) == 0:
+        print("Query Athena failed")
+    else:
+        for x in range(1, len(results["Rows"])):
+            # execute steps functions
+            print(
+                create_steps_task_json(
+                    results["Rows"][x]["Data"],
+                    outputBucket))
+            # update lambda timout limit
+            # sleep 2
 
     return {
         "statusCode": 200,
