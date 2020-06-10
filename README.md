@@ -9,6 +9,9 @@ This project contains source code and supporting files for a serverless applicat
 
 The application uses several AWS resources, including Lambda functions, Athema, CloudWatch, and Step Functions. These resources are defined in the `template.yaml` file in this project.
 
+## Architecure Overview
+<img src="imgs/overview.png" width="600">
+
 ## Deploy the FixityEventRule application
 
 To use the SAM CLI, you need the following tools.
