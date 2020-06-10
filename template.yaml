@@ -27,9 +27,6 @@ Parameters:
     StateMachineName:
       Type: String
       Default: "StateMachineName"
-    StateMachineArn:
-      Type: String
-      Default: "StateMachineArn"
     DayPeriod:
       Type: Number
       Default: 90
@@ -77,7 +74,7 @@ Resources:
             TableName: !Ref TableName
             FixityOutputBucket: !Ref FixityOutputBucket
             ResultBucket: !Ref ResultBucket
-            StateMachineArn: !Ref StateMachineArn
+            StateMachineArn: !Sub "arn:aws:states:${Region}:${AWS::AccountId}:stateMachine:${StateMachineName}"
             DayPeriod: !Ref DayPeriod
 
 Outputs:
