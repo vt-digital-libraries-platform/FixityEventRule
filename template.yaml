@@ -38,13 +38,16 @@ Resources:
   GlueManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: GlueManagedPolicy
+      ManagedPolicyName: GlueManagedPolicyForFixity
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: "Allow"
-            Action: "glue:*"
-            Resource: "*"
+            Action: "glue:GetTable"
+            Resource:
+              - "arn:aws:glue:*:*:database/*"
+              - "arn:aws:glue:*:*:catalog"
+              - "arn:aws:glue:*:*:table/*"
 
   ExecuteFixityStepsFunction:
     Type: AWS::Serverless::Function

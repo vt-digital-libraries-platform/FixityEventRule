@@ -44,7 +44,7 @@ def get_query_result(executionId):
         )
 
         status = response_get_query_details['QueryExecution']['Status']['State']
-        print(status)
+        print('Query status: ' + status)
 
         if (status == 'FAILED') or (status == 'CANCELLED'):
             return result_data
@@ -106,14 +106,14 @@ def lambda_handler(event, context):
 
     query = """
       SELECT bucket, key
-      FROM output
+      FROM %s
       WHERE key NOT IN
         (SELECT key
-        FROM output
+        FROM %s
         WHERE timestamp
           BETWEEN CAST('%s' AS DATE)
             AND CAST('%s' AS DATE) ) LIMIT 1
-    """ % (startDate, endDate)
+    """ % (table_name, table_name, startDate, endDate)
 
     queryResponse = execute_query(
         query=query,
@@ -122,20 +122,25 @@ def lambda_handler(event, context):
     results = get_query_result(queryResponse["QueryExecutionId"])
     outputBucket = fixity_output_bucket_name
 
+    taskResponse = ""
+
     if len(results) == 0:
-        print("Query Athena failed")
+        taskResponse = "Query Athena is failed"
     else:
         for x in range(1, len(results["Rows"])):
             task_json = create_steps_task_json(
                 results["Rows"][x]["Data"],
                 outputBucket)
-            print(task_json)
-            print(execute_step_functions(state_machine_arn, task_json))
+            print("Task:" + task_json)
+            taskResponse = "State machine: " + \
+                str(execute_step_functions(state_machine_arn, task_json))
             time.sleep(2)
+
+    print(taskResponse)
 
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "Task executed.",
+            "message": taskResponse,
         }),
     }
