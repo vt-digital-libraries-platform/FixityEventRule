@@ -10,7 +10,12 @@ This project contains source code and supporting files for a serverless applicat
 The application uses several AWS resources, including Lambda functions, Athema, CloudWatch, and Step Functions. These resources are defined in the `template.yaml` file in this project.
 
 ## Architecure Overview
+
 <img src="imgs/overview.png" width="600">
+
+Cloudwatch executes FixityEventRule Lambda function everyday. FixityEventRule queries Athena, generate step functions tasks, and executes step functions. Step functions do fixity checks for the preservation files stores in S3 and store fixity check results to S3.
+
+See [DLP Fixity Service](https://github.com/vt-digital-libraries-platform/FixityService) for the detail implementation of the AWS step functions serverless fixity for digital preservation compliance.
 
 ## Deploy the FixityEventRule application
 
@@ -35,10 +40,11 @@ Above command will package the application and upload it to the S3 bucket you sp
 
 Run the following in your shell to deploy the application to AWS:
 ```bash
-sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCKETNAME --parameter-overrides 'DatabaseName=databasename TableName=tablename ResultBucket=bucketname FixityOutputBucket=bucketname StateMachineName=statemachinename StateMachineArn=statemachinearn DayPeriod=90 Region=us-east-1' --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1
+sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCKETNAME --parameter-overrides 'DatabaseName=databasename TableName=tablename ResultBucket=bucketname FixityOutputBucket=bucketname StateMachineName=statemachinename WorkGroupName=workgroupname DayPeriod=90 Region=us-east-1' --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1
 ```
 
 ### Environment variables
+
 | Key | Value |
 |----------|:-------------:|
 | DatabaseName | Athena Database Name |
@@ -46,7 +52,7 @@ sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCK
 | ResultBucket | S3 Bucket that stores Athena query result |
 | FixityOutputBucket | S3 Bucket that stores Fixity output result |
 | StateMachineName | State Machine Name |
-| StateMachineArn | State Machine Arn |
+| WorkGroupName | Athena WorkGroup Name |
 | DayPeriod | 90 |
 | REGION | us-east-1 |
 
@@ -54,6 +60,7 @@ sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCK
 * **AWS Region**: The AWS region you want to deploy your app to.
 
 ## Run the lamdba function through bash
+
 ```bash
 aws lambda invoke --function-name LambdaFunctioName out --log-type Tail --query 'LogResult' --output text |  base64 -d
 ```

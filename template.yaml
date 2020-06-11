@@ -66,6 +66,11 @@ Resources:
         - StepFunctionsExecutionPolicy:
             StateMachineName: !Ref StateMachineName
         - !Ref GlueManagedPolicy
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
 
       Environment:
           Variables:
