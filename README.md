@@ -53,6 +53,8 @@ sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCK
 | FixityOutputBucket | S3 Bucket that stores Fixity output result |
 | StateMachineName | State Machine Name |
 | WorkGroupName | Athena WorkGroup Name |
+| SNSTopic | SNS Topic Name |
+| Email | email |
 | DayPeriod | 90 |
 | REGION | us-east-1 |
 
