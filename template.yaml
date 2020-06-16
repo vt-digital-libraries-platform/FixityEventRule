@@ -70,6 +70,8 @@ Resources:
       Runtime: python3.8
       MemorySize: 2048
       Timeout: 120
+      Layers:
+        - !Ref SharedUtils
       Policies:
         - AthenaQueryPolicy:
             WorkGroupName: !Ref WorkGroupName
@@ -106,6 +108,8 @@ Resources:
       Runtime: python3.8
       MemorySize: 2048
       Timeout: 120
+      Layers:
+        - !Ref SharedUtils
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !Ref SNSTopic
@@ -118,6 +122,11 @@ Resources:
         - S3ReadPolicy:
             BucketName: !Ref FixityOutputBucket
         - !Ref GlueManagedPolicy
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
 
       Environment:
           Variables:
@@ -125,6 +134,17 @@ Resources:
             DatabaseName: !Ref DatabaseName
             TableName: !Ref TableName
             ResultBucket: !Ref ResultBucket
+
+  SharedUtils:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Sharedutils functions
+      ContentUri: 'sharedutils/'
+      CompatibleRuntimes:
+        - python3.8
+    Metadata:
+      BuildMethod: python3.8
+
 
 Outputs:
   ExecuteFixityStepsFunction:

@@ -7,7 +7,7 @@ This project contains source code and supporting files for a serverless applicat
 - tests - Unit tests for this application code.
 - template.yaml - A template that defines this application's AWS resources.
 
-The application uses several AWS resources, including Lambda functions, Athema, CloudWatch, and Step Functions. These resources are defined in the `template.yaml` file in this project.
+The application uses several AWS resources, including Lambda functions, Athena, AWS SNS, CloudWatch, and Step Functions. These resources are defined in the `template.yaml` file in this project.
 
 ## Architecure Overview
 

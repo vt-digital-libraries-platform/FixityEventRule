@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from fixitycheck import lambda_function
+from sharedutils import sharedutils
 from datetime import datetime, timedelta
 
 
@@ -13,7 +13,7 @@ def test_event():
 def test_getDateFromDay():
 
     days = 10
-    output = lambda_function.getDateFromDay(days)
+    output = sharedutils.getDateFromDay(days)
     expected = datetime.now() - timedelta(days=days)
 
     assert output == expected.strftime('%Y-%m-%d')
@@ -26,7 +26,18 @@ def test_create_steps_task_json():
     outputBucket = "fixityoutput"
     expected = '{"Bucket": "fixity-test", "Key": "00001.tif", "OutputBucket": "fixityoutput"}'
 
-    output = lambda_function.create_steps_task_json(inputData, outputBucket)
+    output = sharedutils.create_steps_task_json(inputData, outputBucket)
+    assert output == expected
+
+
+def test_list_query_results():
+
+    inputData = [{'VarCharValue': 'fixity-test'},
+                 {'VarCharValue': '00001.tif'}]
+
+    expected = '"S3 Bucket": "fixity-test", "Filename": "00001.tif"'
+
+    output = sharedutils.list_query_results(inputData)
     assert output == expected
 
 
@@ -34,5 +45,5 @@ def test_get_value_from_list():
 
     inputData = {'VarCharValue': 'test'}
 
-    output = lambda_function.get_value_from_list(inputData)
+    output = sharedutils.get_value_from_list(inputData)
     assert output == "test"
