@@ -40,7 +40,7 @@ Above command will package the application and upload it to the S3 bucket you sp
 
 Run the following in your shell to deploy the application to AWS:
 ```bash
-sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCKETNAME --parameter-overrides 'DatabaseName=databasename TableName=tablename ResultBucket=bucketname FixityOutputBucket=bucketname StateMachineName=statemachinename WorkGroupName=workgroupname DayPeriod=90 Region=us-east-1' --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1
+sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCKETNAME --parameter-overrides 'DatabaseName=databasename TableName=tablename ResultBucket=bucketname FixityOutputBucket=bucketname StateMachineName=statemachinename WorkGroupName=workgroupname SNSTopic=SNSTopic GlueManagedPolicyName=PolicyName Email=Email DayPeriod=90 Region=us-east-1' --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1
 ```
 
 ### Environment variables
@@ -54,6 +54,7 @@ sam deploy --template-file packaged.yaml --stack-name STACKNAME --s3-bucket BUCK
 | StateMachineName | State Machine Name |
 | WorkGroupName | Athena WorkGroup Name |
 | SNSTopic | SNS Topic Name |
+| GlueManagedPolicyName | Glue ManagedPolicy Name |
 | Email | email |
 | DayPeriod | 90 |
 | REGION | us-east-1 |
