@@ -18,6 +18,7 @@ def lambda_handler(event, context):
     startDate = sharedutils.getDateFromDay(dayPeriod)
     endDate = sharedutils.getDateFromDay(0)
 
+    # Remove the limit after fanout function is inplace.
     query = """
       SELECT bucket, key
       FROM %s
@@ -49,8 +50,6 @@ def lambda_handler(event, context):
             taskResponse = "State machine: " + \
                 str(sharedutils.execute_step_functions(state_machine_arn, task_json))
             time.sleep(2)
-
-    print(taskResponse)
 
     return {
         "statusCode": 200,

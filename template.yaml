@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   FixityEventRule
 
-  SAM Template for Execute Fixity Steps Function
+  SAM Template for Secheduling 1. Execute Fixity Steps Function. 2. Check Fixity result and send notification email.
 
 Parameters:
     Region:
@@ -36,12 +36,16 @@ Parameters:
     Email:
       Type: String
       Default: "test@vt.edu"
+    GlueManagedPolicyName:
+      Type: String
+      Default: "GlueManagedPolicyForFixity"
+
 
 Resources:
   GlueManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: GlueManagedPolicyForFixity
+      ManagedPolicyName: !Ref GlueManagedPolicyName
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

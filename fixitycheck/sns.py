@@ -24,10 +24,8 @@ def lambda_handler(event, context):
       WHERE timestamp
         BETWEEN CAST('%s' AS DATE)
             AND CAST('%s' AS DATE)
-            AND comparedresult = 'MATCHED'
+            AND comparedresult != 'MATCHED'
     """ % (table_name, startDate, endDate)
-
-    print(query)
 
     queryResponse = sharedutils.execute_query(
         query=query,
@@ -36,19 +34,18 @@ def lambda_handler(event, context):
     results = sharedutils.get_query_result(queryResponse["QueryExecutionId"])
 
     message = ""
+    response = ""
 
     if len(results) == 0:
         response = "Query Athena is failed"
-        print(response)
+        message = response
     else:
         totalResult = str(len(results["Rows"]) - 1)
-        print("Total: " + totalResult)
         message = "Total: " + totalResult + "\n"
 
         for x in range(1, len(results["Rows"])):
             queryResult = sharedutils.list_query_results(
                 results["Rows"][x]["Data"])
-            print(queryResult)
             message = message + queryResult + "\n"
 
     client = boto3.client('sns')
@@ -58,8 +55,6 @@ def lambda_handler(event, context):
         Message=message,
         Subject='Fixity Result'
     )
-
-    print("SNS test")
 
     return {
         "statusCode": 200,

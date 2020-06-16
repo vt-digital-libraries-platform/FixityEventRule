@@ -1,0 +1,195 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'FixityEventRule
+
+  SAM Template for Secheduling 1. Execute Fixity Steps Function. 2. Check Fixity result
+  and send notification email.
+
+  '
+Parameters:
+  Region:
+    Type: String
+    Default: us-east-1
+  DatabaseName:
+    Type: String
+    Default: DatabaseName
+  TableName:
+    Type: String
+    Default: TableName
+  FixityOutputBucket:
+    Type: String
+    Default: FixityOutputBucket
+  ResultBucket:
+    Type: String
+    Default: ResultBucket
+  WorkGroupName:
+    Type: String
+    Default: primary
+  StateMachineName:
+    Type: String
+    Default: StateMachineName
+  DayPeriod:
+    Type: Number
+    Default: 90
+  SNSTopic:
+    Type: String
+    Default: FixityResultTopic
+  Email:
+    Type: String
+    Default: test@vt.edu
+  GlueManagedPolicyName:
+    Type: String
+    Default: GlueManagedPolicyForFixity
+Resources:
+  GlueManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName:
+        Ref: GlueManagedPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: glue:GetTable
+          Resource:
+          - arn:aws:glue:*:*:database/*
+          - arn:aws:glue:*:*:catalog
+          - arn:aws:glue:*:*:table/*
+  FixityResultTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Fixity result SNS topic
+      Subscription:
+      - Endpoint:
+          Ref: Email
+        Protocol: email
+      TopicName:
+        Ref: SNSTopic
+  ExecuteFixityStepsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://vtdlp-dev-cf/021fba96bef2ea8266056cadcfbc4477
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.8
+      MemorySize: 2048
+      Timeout: 120
+      Layers:
+      - Ref: SharedUtils
+      Policies:
+      - AthenaQueryPolicy:
+          WorkGroupName:
+            Ref: WorkGroupName
+      - S3WritePolicy:
+          BucketName:
+            Ref: ResultBucket
+      - S3ReadPolicy:
+          BucketName:
+            Ref: ResultBucket
+      - S3ReadPolicy:
+          BucketName:
+            Ref: FixityOutputBucket
+      - StepFunctionsExecutionPolicy:
+          StateMachineName:
+            Ref: StateMachineName
+      - Ref: GlueManagedPolicy
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+      Environment:
+        Variables:
+          Region:
+            Ref: Region
+          DatabaseName:
+            Ref: DatabaseName
+          TableName:
+            Ref: TableName
+          FixityOutputBucket:
+            Ref: FixityOutputBucket
+          ResultBucket:
+            Ref: ResultBucket
+          StateMachineArn:
+            Fn::Sub: arn:aws:states:${Region}:${AWS::AccountId}:stateMachine:${StateMachineName}
+          DayPeriod:
+            Ref: DayPeriod
+  FixitySNS:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://vtdlp-dev-cf/c26d610adcf73349cd28e8eb8ad6e47c
+      Handler: sns.lambda_handler
+      Runtime: python3.8
+      MemorySize: 2048
+      Timeout: 120
+      Layers:
+      - Ref: SharedUtils
+      Policies:
+      - SNSPublishMessagePolicy:
+          TopicName:
+            Ref: SNSTopic
+      - AthenaQueryPolicy:
+          WorkGroupName:
+            Ref: WorkGroupName
+      - S3WritePolicy:
+          BucketName:
+            Ref: ResultBucket
+      - S3ReadPolicy:
+          BucketName:
+            Ref: ResultBucket
+      - S3ReadPolicy:
+          BucketName:
+            Ref: FixityOutputBucket
+      - Ref: GlueManagedPolicy
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+      Environment:
+        Variables:
+          FixitySNS:
+            Ref: FixityResultTopic
+          DatabaseName:
+            Ref: DatabaseName
+          TableName:
+            Ref: TableName
+          ResultBucket:
+            Ref: ResultBucket
+  SharedUtils:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Sharedutils functions
+      ContentUri: s3://vtdlp-dev-cf/1f8e1a507659dea9c9a03f01e124fb4c
+      CompatibleRuntimes:
+      - python3.8
+    Metadata:
+      BuildMethod: python3.8
+Outputs:
+  ExecuteFixityStepsFunction:
+    Description: Execute Fixity Steps Function ARN
+    Value:
+      Fn::GetAtt:
+      - ExecuteFixityStepsFunction
+      - Arn
+  ExecuteFixityStepsFunctionIamRole:
+    Description: Implicit IAM Role created for Execute Fixity Steps Function
+    Value:
+      Fn::GetAtt:
+      - ExecuteFixityStepsFunctionRole
+      - Arn
+  FixityResultTopic:
+    Description: Fixity result SNS topic ARN
+    Value:
+      Ref: FixityResultTopic
+  FixitySNS:
+    Description: FixitySNS ARN
+    Value:
+      Fn::GetAtt:
+      - FixitySNS
+      - Arn
+  FixitySNSIamRole:
+    Description: Implicit IAM Role created for FixitySNS function
+    Value:
+      Fn::GetAtt:
+      - FixitySNSRole
+      - Arn
