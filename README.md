@@ -1,6 +1,6 @@
 # FixityEventRule
 
-This project contains source code and supporting files for a serverless application - FixityEventRule - that you can deploy with the SAM CLI. It includes the following files and folders.
+This project contains one Lambda function [lambda_function.py](fixitycheck/lambda_function.py) that queries Athena table and execute Step functions tasks and a CloudWatch rule that triggers a Lambda function [sns.py](fixitycheck/sns.py) to email recipient with fixity report. Source code and supporting files for this serverless application - FixityEventRule - that you can deploy with the SAM CLI or Cloudformation. It includes the following files and folders.
 
 - fixitycheck - Code for this application's Lambda function.
 - events - Invocation events that you can use to invoke the function.
@@ -13,11 +13,54 @@ The application uses several AWS resources, including Lambda functions, Athena, 
 
 <img src="imgs/overview.png" width="600">
 
-Cloudwatch executes FixityEventRule Lambda function everyday. FixityEventRule queries Athena, generate step functions tasks, and executes step functions. Step functions do fixity checks for the preservation files stores in S3 and store fixity check results to S3.
+### Fixity Check:
+1. Cloudwatch executes FixityEventRule Lambda function daily.
+2. FixityEventRule queries Athena, generate step functions tasks, and executes step functions.
+3. Step functions do fixity checks for the preservation files stores in S3 and store fixity check results to S3.
+
+### Email fixity report:
+1. Cloudwatch executes FixityEventRule Lambda function daily.
+2. FixityEventRule queries Athena, generate summary report, and email to recipient through SNS.
 
 See [DLP Fixity Service](https://github.com/vt-digital-libraries-platform/FixityService) for the detail implementation of the AWS step functions serverless fixity for digital preservation compliance.
 
+See [Athena](athena/readme.md) for Athena database setup.
+
 ## Deploy the FixityEventRule application
+
+### Deploy FixityEventRule application using CloudFormation stack
+#### Step 1: Launch CloudFormation stack
+[![Launch Stack](https://cdn.rawgit.com/buildkite/cloudformation-launch-stack-button-svg/master/launch-stack.svg)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://vtdlp-dev-cf.s3.amazonaws.com/ef4ecb7ebe86dae6f577b24a635a3e46.template)
+
+Click *Next* to continue
+
+#### Step 2: Specify stack details
+
+| Name | Description |
+|:---  |:------------|
+| Stack name | any valid name |
+| DatabaseName | Athena Database Name |
+| TableName | Athena Table Name |
+| ResultBucket | S3 Bucket that stores Athena query result |
+| FixityOutputBucket | S3 Bucket that stores Fixity output result |
+| StateMachineName | a valid State Machine Name |
+| WorkGroupName | a valid Athena WorkGroup Name |
+| SNSTopic | a valid SNS Topic Name |
+| GlueManagedPolicyName | Glue ManagedPolicy Name |
+| Email | a valid email |
+| DayPeriod | 90 |
+| REGION | a valid AWS region. e.g. us-east-1  |
+
+#### Step 3: Configure stack options
+Leave it as is and click **Next**
+
+#### Step 4: Review
+Make sure all checkboxes under Capabilities section are **CHECKED**
+
+Click *Create stack*
+
+
+### Deploy FixityEventRule application using SAM CLI
 
 To use the SAM CLI, you need the following tools.
 
