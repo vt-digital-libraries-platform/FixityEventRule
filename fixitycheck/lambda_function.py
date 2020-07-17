@@ -1,3 +1,4 @@
+import boto3
 import json
 import os
 import sharedutils
@@ -11,7 +12,6 @@ def lambda_handler(event, context):
     table_name = os.getenv('TableName')
     fixity_output_bucket_name = os.getenv('FixityOutputBucket')
     query_result_bucket_name = os.getenv('ResultBucket')
-    state_machine_arn = os.getenv('StateMachineArn')
     dayPeriod = int(os.getenv('DayPeriod'))
 
     s3_output = f's3://{query_result_bucket_name}/results/'
@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         FROM %s
         WHERE timestamp
           BETWEEN CAST('%s' AS DATE)
-            AND CAST('%s' AS DATE) ) LIMIT 1
+            AND CAST('%s' AS DATE) )
     """ % (table_name, table_name, startDate, endDate)
 
     queryResponse = sharedutils.execute_query(
@@ -38,6 +38,8 @@ def lambda_handler(event, context):
     outputBucket = fixity_output_bucket_name
 
     taskResponse = ""
+    sqs = boto3.client('sqs')
+    fixityQueueUrl = os.getenv('FixityQueueURL')
 
     if len(results) == 0:
         taskResponse = "Query Athena is failed"
@@ -47,9 +49,11 @@ def lambda_handler(event, context):
                 results["Rows"][x]["Data"],
                 outputBucket)
             print("Task:" + task_json)
-            taskResponse = "State machine: " + \
-                str(sharedutils.execute_step_functions(state_machine_arn, task_json))
-            time.sleep(2)
+
+            msg = task_json
+            sqsresponse = sqs.send_message(QueueUrl=fixityQueueUrl, MessageBody=msg)
+            print(sqsresponse.get('MessageId'))
+            print(sqsresponse.get('MD5OfMessageBody'))
 
     return {
         "statusCode": 200,

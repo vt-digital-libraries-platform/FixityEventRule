@@ -85,9 +85,9 @@ Resources:
             BucketName: !Ref ResultBucket
         - S3ReadPolicy:
             BucketName: !Ref FixityOutputBucket
-        - StepFunctionsExecutionPolicy:
-            StateMachineName: !Ref StateMachineName
         - !Ref GlueManagedPolicy
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt FixitySqsQueue.QueueName
       Events:
         ScheduledEvent:
           Type: Schedule
@@ -101,8 +101,35 @@ Resources:
             TableName: !Ref TableName
             FixityOutputBucket: !Ref FixityOutputBucket
             ResultBucket: !Ref ResultBucket
-            StateMachineArn: !Sub "arn:aws:states:${Region}:${AWS::AccountId}:stateMachine:${StateMachineName}"
             DayPeriod: !Ref DayPeriod
+            FixityQueueURL: !Ref FixitySqsQueue
+
+  SubmitSteps:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: fixitycheck/
+      Handler: steps.lambda_handler
+      Runtime: python3.8
+      Timeout: 30
+      Layers:
+        - !Ref SharedUtils
+      Policies:
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !Ref StateMachineName
+      Events:
+        FixitySQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FixitySqsQueue.Arn
+            BatchSize: 10
+
+      Environment:
+          Variables:
+            Region: !Ref Region
+            StateMachineArn: !Sub "arn:aws:states:${Region}:${AWS::AccountId}:stateMachine:${StateMachineName}"
+
+  FixitySqsQueue:
+    Type: AWS::SQS::Queue
 
   FixitySNS:
     Type: AWS::Serverless::Function
