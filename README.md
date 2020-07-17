@@ -30,7 +30,7 @@ See [Athena](athena/readme.md) for Athena database setup.
 
 ### Deploy FixityEventRule application using CloudFormation stack
 #### Step 1: Launch CloudFormation stack
-[![Launch Stack](https://cdn.rawgit.com/buildkite/cloudformation-launch-stack-button-svg/master/launch-stack.svg)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://vtdlp-dev-cf.s3.amazonaws.com/c7fb0c68f7dd709f2f9f86b5f14053ac.template)
+[![Launch Stack](https://cdn.rawgit.com/buildkite/cloudformation-launch-stack-button-svg/master/launch-stack.svg)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://vtdlp-dev-cf.s3.amazonaws.com/1e0d2aa1b59c77905e84f4575cb2f179.template)
 
 Click *Next* to continue
 

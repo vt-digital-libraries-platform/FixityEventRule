@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         FROM %s
         WHERE timestamp
           BETWEEN CAST('%s' AS DATE)
-            AND CAST('%s' AS DATE) ) LIMIT 1
+            AND CAST('%s' AS DATE) )
     """ % (table_name, table_name, startDate, endDate)
 
     queryResponse = sharedutils.execute_query(
